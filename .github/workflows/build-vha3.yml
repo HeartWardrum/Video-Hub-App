@@ -1,39 +1,41 @@
-name: Build Video Hub App 3
+name: Build VHA3 for Windows
 
 on:
-  workflow_dispatch: # 允许你手动点击按钮触发编译
+  workflow_dispatch: # 手动触发编译
+
+permissions:
+  contents: write
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        # 你可以根据需要增加或删减系统平台
-        os: [windows-latest, macos-latest] 
-    runs-on: ${{ matrix.os }}
+  build-windows:
+    # 指定只在 Windows 环境下运行
+    runs-on: windows-latest
 
     steps:
-      - name: Checkout Code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22' # 推荐使用较新的版本
+          node-version: '20' # VHA3 相对稳定支持的版本
+          cache: 'npm'
 
       - name: Install Dependencies
+        # 使用 --legacy-peer-deps 解决插件版本冲突
         run: npm install --legacy-peer-deps
 
-      - name: Build and Package
-        # 这个命令会调用 package.json 里的 electron 打包脚本
-        run: npm run electron 
+      - name: Package Windows App
+        # 强制执行 Electron 打包
+        run: npm run electron
+        env:
+          CI: false # 忽略某些非致命的编译警告
 
-      - name: Upload Artifacts
+      - name: Upload Windows Executable
         uses: actions/upload-artifact@v4
         with:
-          name: VHA3-Build-${{ matrix.os }}
-          # 这里的路径是 electron-builder 默认的输出位置
+          name: Video-Hub-App-3-Win11
+          # 只抓取生成的 .exe 安装包
           path: |
             dist/*.exe
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.zip
+            dist/*.msi
