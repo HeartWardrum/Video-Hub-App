@@ -1,0 +1,39 @@
+name: Build Video Hub App 3
+
+on:
+  workflow_dispatch: # 允许你手动点击按钮触发编译
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        # 你可以根据需要增加或删减系统平台
+        os: [windows-latest, macos-latest] 
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22' # 推荐使用较新的版本
+
+      - name: Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build and Package
+        # 这个命令会调用 package.json 里的 electron 打包脚本
+        run: npm run electron 
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: VHA3-Build-${{ matrix.os }}
+          # 这里的路径是 electron-builder 默认的输出位置
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.zip
